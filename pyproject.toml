@@ -1,7 +1,7 @@
 [project]
 name = "python-foxess"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "Python client for FoxESS Cloud."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -13,4 +13,9 @@ dev = [
     "mypy>=1.20.2",
     "ruff>=0.15.12",
     "types-requests>=2.33.0.20260503",
+]
+
+[tool.uv.workspace]
+members = [
+    "examples/mqtt",
 ]
