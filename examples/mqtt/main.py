@@ -3,7 +3,7 @@ import time
 import json
 import dotenv
 from dataclasses import dataclass
-from foxess import FoxESSClient, FoxESSInverter
+from foxess import FoxESSClient, FoxESSInverter, FoxESSInverterStatus
 from paho.mqtt.client import CallbackAPIVersion as MQTTCallbackAPIVersion, Client as MQTTClient
 
 dotenv.load_dotenv()
@@ -24,6 +24,13 @@ sensors = [
         'class': 'power',
         'unit': 'kW',
         'get': lambda: inverter.get_power(),
+    },
+    {
+        'name': 'energy',
+        'label': 'Energy',
+        'class': 'energy',
+        'unit': 'kWh',
+        'get': lambda: inverter.get_energy(),
     },
     {
         'name': 'voltage_l1',
@@ -75,9 +82,23 @@ def main():
 
     mqtt.loop_start()
 
+    time_status = 0
+    time_data = 0
+    status = inverter.get_status()
+
     while True:
-        for sensor in sensors:
-            mqtt.publish(f'foxess/{inverter.sn}/{sensor['name']}', sensor['get']())
+        if time.time() - time_status >= 10 * 60:
+            status = inverter.get_status()
+            match status:
+                case FoxESSInverterStatus.ONLINE:
+                    mqtt.publish(f'foxess/{inverter.sn}/status', 'online')
+                case FoxESSInverterStatus.ERROR:
+                    mqtt.publish(f'foxess/{inverter.sn}/status', 'online')
+                case FoxESSInverterStatus.OFFLINE:
+                    mqtt.publish(f'foxess/{inverter.sn}/status', 'offline')
+        if (status == FoxESSInverterStatus.ONLINE or status == FoxeSSInverterStatus.ERROR) and time.time() - time_data >= 5 * 10:
+            for sensor in sensors:
+                mqtt.publish(f'foxess/{inverter.sn}/{sensor['name']}', sensor['get']())
 
         time.sleep(60)
 
@@ -108,7 +129,7 @@ def on_connect(client, *args):
             'name': 'python_foxess',
         },
         'components': components,
-    }))
+    }), retain=True)
 
 if __name__ == '__main__':
     main()

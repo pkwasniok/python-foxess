@@ -81,13 +81,22 @@ class FoxESSInverter:
         return FoxESSInverterStatus.from_code(self._details['status'])
 
     def get_power(self) -> float:
-        """Return value of currently produced power in kWh.
+        """Return value of currently produced power in kW.
         """
 
         self._refresh_variables()
         assert 'pvPower' in self._variables and isinstance(self._variables['pvPower'], float)
 
         return self._variables['pvPower']
+
+    def get_energy(self) -> float:
+        """Return value of energy produced today in kWh.
+        """
+
+        self._refresh_variables()
+        assert 'todayYield' in self._variables and isinstance(self._variables['todayYield'], float)
+
+        return self._variables['todayYield']
 
     def get_grid_voltages(self) -> tuple[float, float, float]:
         """Return values of grid voltages in V.
