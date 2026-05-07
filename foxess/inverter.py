@@ -46,12 +46,18 @@ class FoxESSInverter:
     def _refresh_variables(self) -> None:
         if time.time() - self._timestamp_variables <= 60:
             return
+        self._timestamp_variables = time.time()
+
+        print('[info] making request')
 
         self._variables = self._request_variables()
 
     def _refresh_details(self) -> None:
         if time.time() - self._timestamp_details <= 120:
             return
+        self._timestamp_details = time.time()
+
+        print('[info] making request')
 
         self._details = self._request_details()
 
