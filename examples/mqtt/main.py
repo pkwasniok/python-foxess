@@ -25,6 +25,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'kW',
         'get': lambda: inverter.get_power(),
+        'availability': 'static',
     },
     {
         'name': 'energy',
@@ -33,6 +34,7 @@ sensors = [
         'state_class': 'total_increasing',
         'unit': 'kWh',
         'get': lambda: inverter.get_energy(),
+        'availability': 'static',
     },
     {
         'name': 'voltage_l1',
@@ -41,6 +43,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'V',
         'get': lambda: inverter.get_grid_voltages()[0],
+        'availability': 'dynamic',
     },
     {
         'name': 'voltage_l2',
@@ -49,6 +52,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'V',
         'get': lambda: inverter.get_grid_voltages()[1],
+        'availability': 'dynamic',
     },
     {
         'name': 'voltage_l3',
@@ -57,6 +61,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'V',
         'get': lambda: inverter.get_grid_voltages()[2],
+        'availability': 'dynamic',
     },
     {
         'name': 'frequency_l1',
@@ -65,6 +70,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'Hz',
         'get': lambda: inverter.get_grid_frequencies()[0],
+        'availability': 'dynamic',
     },
     {
         'name': 'frequency_l2',
@@ -73,6 +79,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'Hz',
         'get': lambda: inverter.get_grid_frequencies()[1],
+        'availability': 'dynamic',
     },
     {
         'name': 'frequency_l3',
@@ -81,6 +88,7 @@ sensors = [
         'state_class': 'measurement',
         'unit': 'Hz',
         'get': lambda: inverter.get_grid_frequencies()[2],
+        'availability': 'dynamic',
     },
 ]
 
@@ -104,7 +112,7 @@ def main():
                     mqtt.publish(f'foxess/{inverter.sn}/status', 'online')
                 case FoxESSInverterStatus.OFFLINE:
                     mqtt.publish(f'foxess/{inverter.sn}/status', 'offline')
-        if (status == FoxESSInverterStatus.ONLINE or status == FoxeSSInverterStatus.ERROR) and time.time() - time_data >= 5 * 10:
+        if (status == FoxESSInverterStatus.ONLINE or status == FoxESSInverterStatus.ERROR) and time.time() - time_data >= 5 * 10:
             for sensor in sensors:
                 mqtt.publish(f'foxess/{inverter.sn}/{sensor['name']}', sensor['get']())
 
@@ -124,6 +132,9 @@ def on_connect(client, *args):
             'unit_of_measurement': sensor['unit'],
             'state_topic': f'foxess/{inverter.sn}/{sensor['name']}',
         }
+
+        if sensor['availability'] == 'dynamic':
+            components[sensor['name']]['availability_topic'] = f'foxess/{inverter.sn}/status'
 
     client.publish(f'homeassistant/device/{inverter.sn}/config', json.dumps({
         'device': {
