@@ -8,6 +8,15 @@ class FoxESSInverterStatus(Enum):
     ERROR = 2
     OFFLINE = 3
 
+    def __str__(self) -> str:
+        match self:
+            case self.ONLINE:
+                return 'online'
+            case self.ERROR:
+                return 'error'
+            case self.OFFLINE:
+                return 'offline'
+
     @staticmethod
     def from_code(code: int):
         match code:
