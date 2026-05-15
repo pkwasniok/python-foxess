@@ -2,7 +2,6 @@ import os
 import time
 import json
 import dotenv
-import pprint
 from collections.abc import Callable
 from dataclasses import dataclass
 from foxess import FoxESSClient, FoxESSInverter, FoxESSInverterStatus
@@ -140,8 +139,10 @@ def build_mqtt_discovery_payload(device: MQTTDevice):
             'state_class': sensor.state_class,
             'unit_of_measurement': sensor.unit,
             'state_topic': f'foxess/{device.name}/{sensor.name}',
-            'availability_topic': f'foxess/{device.name}/status' if sensor.availability else None
         }
+
+        if sensor.availability == True:
+            components[sensor.name]['availability_topic'] = f'foxess/{device.name}/status'
 
     return {
         'device': {
@@ -162,6 +163,8 @@ def main():
     mqtt.on_connect = on_connect
 
     mqtt.loop_start()
+
+    time.sleep(5)
 
     time_status = 0
     time_data = 0
